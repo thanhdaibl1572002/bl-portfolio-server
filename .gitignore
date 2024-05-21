@@ -1,0 +1,4 @@
+node_modules/
+dist/
+loggers/
+bl-folio-firebase-service-account.json
