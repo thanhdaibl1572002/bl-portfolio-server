@@ -11,7 +11,8 @@ import Logger, { getCallerName } from '@/utils/Logger'
 import MongoDB from '@/utils/MongoDB'
 import { AuthRouter } from '@/routes/auth.route'
 import { ConversationRouter } from '@/routes/conversation.route'
-import { UserRouter } from '@/routes/user.route'
+import { MessageRouter } from '@/routes/message.route'
+import { UserController } from '@/controllers/user.controller'
 
 class App {
   private app: Application
@@ -54,29 +55,44 @@ class App {
   private routes(): void {
     const authRouter = new AuthRouter()
     const conversationRouter = new ConversationRouter()
-    const userRouter = new UserRouter()
+    const messageRouter = new MessageRouter()
     this.app.use('/auth', authRouter.getRouter())
     this.app.use('/conversation', conversationRouter.getRouter())
-    this.app.use('/user', userRouter.getRouter())
+    this.app.use('/message', messageRouter.getRouter())
   }
 
   private socketRoutes(): void {
     this.io.on('connection', (socket) => {
-      console.log('User connected', socket.id)
-
+      console.log('User connected.', socket.id)
       socket.on('disconnect', () => {
-        console.log('User disconnected', socket.id)
+        console.log('User disconnected.', socket.id)
       })
-
-      socket.on('chat message', (msg) => {
-        console.log('Message:', msg)
-        this.io.emit('chat message', msg)
+      socket.on('sendToAdmin', async (data) => {
+        const socketIdAdmin = await UserController.getSocketIdAdmin()
+        if (socketIdAdmin) {
+          socket.to(socketIdAdmin).emit('receiveAdmin', { 
+            message: data.message, 
+            sender: data.email,
+          })
+        }
+      })
+      socket.on('sendToUser', async (data) => {
+        const socketIdUser = await UserController.getSocketIdUser(data.email)
+        if (socketIdUser) {
+          socket.to(socketIdUser).emit('receiveUser', {
+            message: data.message,
+            sender: 'Admin' 
+          })
+        } 
+      })
+      socket.on('updateSocketId', async (data) => {
+        await UserController.updateSocketId(data.email, socket.id)
       })
     })
   }
 
   private start(): void {
-    this.app.listen(process.env.SERVER_PORT, () => {
+    this.server.listen(process.env.SERVER_PORT, () => {
       const logger = new Logger(getCallerName(module))
       logger.info(`Máy chủ chạy trên cổng: ${process.env.SERVER_PORT}.`)
       new MongoDB()

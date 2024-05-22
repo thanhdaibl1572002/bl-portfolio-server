@@ -20,30 +20,17 @@ export class ConversationController {
     }
   }
 
-  async createConversation(req: Request, res: Response): Promise<Response<HttpResponse<any>>> {
+  public static async createConversation(participants: Array<string>) {
     try {
-      const { participants } = req.body
-      if (!Array.isArray(participants) || participants.length < 2) {
-        return res
-          .status(HttpStatusCode.BAD_REQUEST)
-          .json(new HttpResponse(HttpStatusCode.BAD_REQUEST, HttpStatusText.BAD_REQUEST, 'Participants must be an array with at least 2 members.'))
-      }
+      if (!Array.isArray(participants) || participants.length < 2) 
+        throw new Error('Participants must be an array with at least 2 members.')
       const existingConversation = await Conversation.findOne({ participants })
-      if (existingConversation) {
-        return res
-          .status(HttpStatusCode.OK)
-          .json(new HttpResponse(HttpStatusCode.OK, HttpStatusText.OK, 'Conversation found.', existingConversation))
-      }
+      if (existingConversation) return existingConversation
       const newConversation = new Conversation({ participants })
       const savedConversation = await newConversation.save()
-      return res
-        .status(HttpStatusCode.CREATED)
-        .json(new HttpResponse(HttpStatusCode.CREATED, HttpStatusText.CREATED, 'Conversation created successfully.', savedConversation))
+      return savedConversation
     } catch (error) {
       console.error(error)
-      return res
-        .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-        .json(new HttpResponse(HttpStatusCode.INTERNAL_SERVER_ERROR, HttpStatusText.INTERNAL_SERVER_ERROR, 'Failed to create conversation.'))
     }
   }
 

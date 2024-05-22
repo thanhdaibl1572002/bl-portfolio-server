@@ -6,10 +6,9 @@ const userSchema = new Schema({
     required: true,
     unique: true
   },
-  googleId: {
+  socketId: {
     type: String,
-    required: true,
-    unique: true
+    default: null
   },
   displayName: {
     type: String,

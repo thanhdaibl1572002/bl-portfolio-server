@@ -17,7 +17,6 @@ export class ConversationRouter {
   private initRoutes(): void {
     this.router.get('/get-all-conversation', this.authMiddleware.checkAuth, this.conversationController.getAllConversation)
     this.router.get('/get-conversation-by-id/:conversationId', this.authMiddleware.checkAuth, this.conversationController.getConversationById)
-    this.router.post('/create-conversation', this.authMiddleware.checkAuth, this.conversationController.createConversation)
   }
 
   getRouter(): Router {

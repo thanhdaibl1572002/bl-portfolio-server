@@ -11,17 +11,15 @@ export class AuthMiddleware {
     if (!token) 
       return res
       .status(HttpStatusCode.UNAUTHORIZED)
-      .json(new HttpResponse(HttpStatusCode.UNAUTHORIZED, HttpStatusText.UNAUTHORIZED, 'Không có token'))
+      .json(new HttpResponse(HttpStatusCode.UNAUTHORIZED, HttpStatusText.UNAUTHORIZED, 'Token not found.'))
     try {
-      const decodedToken = await firebaseAdminAuth.verifyIdToken(token)
-      const googleId = decodedToken.uid
-      req.user = { googleId: googleId }
+      await firebaseAdminAuth.verifyIdToken(token)
       next()
     } catch (error) {
       console.error(error)
       return res
       .status(HttpStatusCode.UNAUTHORIZED)
-      .json(new HttpResponse(HttpStatusCode.UNAUTHORIZED, HttpStatusText.UNAUTHORIZED, 'Lỗi khác'))
+      .json(new HttpResponse(HttpStatusCode.UNAUTHORIZED, HttpStatusText.UNAUTHORIZED, 'Authentication failed.'))
     }
   }
 }

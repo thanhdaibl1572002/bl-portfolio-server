@@ -1,28 +1,36 @@
-import { Request, Response } from 'express'
-import HttpResponse from '@/utils/HttpResponse'
-import HttpStatusCode from '@/utils/HttpStatusCode'
-import HttpStatusText from '@/utils/HttpStatusText'
+import { config } from 'dotenv'
 import User from '@/models/user.model'
+config()
 
 export class UserController {
   constructor() { }
-  async getUserByGoogleId(req: Request, res: Response): Promise<Response<HttpResponse<any>>> {
+  public static async getSocketIdAdmin(): Promise<string | null> {
     try {
-      const googleId = req.params.googleId
-      const user = await User.findOne({ googleId })
-      if (!user) {
-        return res
-        .status(HttpStatusCode.NOT_FOUND)
-        .json(new HttpResponse(HttpStatusCode.NOT_FOUND, HttpStatusText.NOT_FOUND, 'User not found.'))
-      }
-      return res
-      .status(HttpStatusCode.OK)
-      .json(new HttpResponse(HttpStatusCode.OK, HttpStatusText.OK, 'User found.', user))
-    } catch (error) {
+      const admin = await User.findOne({ email: process.env.ADMIN_EMAIL })
+      if (!admin) throw new Error('Socket Id Admin not found.')
+      return admin.socketId
+    } catch (error: any) {
       console.error(error)
-      return res
-      .status(HttpStatusCode.INTERNAL_SERVER_ERROR)
-      .json(new HttpResponse(HttpStatusCode.INTERNAL_SERVER_ERROR, HttpStatusText.INTERNAL_SERVER_ERROR, 'Failed to get user.'))
+      return null
+    }
+  }
+
+  public static async getSocketIdUser(email: string): Promise<string | null> {
+    try {
+      const user = await User.findOne({ email: email })
+      if (!user) throw new Error('Socket Id User not found.')
+      return user.socketId
+    } catch (error: any) {
+      console.error(error)
+      return null
+    }
+  }
+
+  public static async updateSocketId(email: string, socketId: string): Promise<void> {
+    try {
+      await User.findOneAndUpdate({ email }, { $set: { socketId: socketId } }, { new: true })
+    } catch(error: any) {
+      console.error(error)
     }
   }
 }
