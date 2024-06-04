@@ -1,4 +1,12 @@
-import mongoose, { Schema } from 'mongoose'
+import mongoose, { Schema, Types } from 'mongoose'
+import { IUser } from '@/models/user.model'
+
+export interface IConversation {
+  _id: Types.ObjectId
+  participants: IUser[]
+  createdAt: Date
+  updatedAt: Date
+}
 
 const conversationSchema = new Schema({
   participants: [

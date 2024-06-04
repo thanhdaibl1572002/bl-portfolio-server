@@ -1,20 +1,26 @@
 import mongoose, { Schema } from 'mongoose'
 
+export interface IMessage {
+  _id: string
+  type: 'text' | 'image'
+  content: string
+  emotion: string
+  createdAt: string
+  updatedAt: string
+  replyTo: Object | null
+  recall: boolean
+  unread: boolean
+}
+
 const messageSchema = new Schema({
-  conversationId: {
-    type: Schema.Types.ObjectId,
-    ref: 'Conversation',
-    required: true,
-  },
-  senderId: {
+  user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
   },
-  receiverId: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
+  from: {
+    type: String,
+    required: true
   },
   type: {
     type: String,
@@ -25,8 +31,9 @@ const messageSchema = new Schema({
     type: Object,
     required: true,
   },
-  emotion: {
-    type: String,
+  emotions: {
+    admin: String,
+    user: String,
   },
   createdAt: {
     type: Date,
@@ -43,6 +50,10 @@ const messageSchema = new Schema({
     type: Boolean,
     default: false,
   },
+  unread: {
+    type: Boolean,
+    default: true,
+  }
 })
 
 const Message = mongoose.model('Message', messageSchema)

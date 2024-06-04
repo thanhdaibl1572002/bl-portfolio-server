@@ -1,6 +1,20 @@
 import mongoose, { Schema } from 'mongoose'
+import { Types } from 'mongoose'
+
+export interface IUser {
+  _id: Types.ObjectId
+  displayName: string
+  email: string
+  photoURL: string
+  userId: string
+}
 
 const userSchema = new Schema({
+  userId: {
+    type: String,
+    required: true,
+    unique: true
+  },
   email: {
     type: String,
     required: true,

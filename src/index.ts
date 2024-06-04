@@ -10,9 +10,9 @@ import http from 'http'
 import Logger, { getCallerName } from '@/utils/Logger'
 import MongoDB from '@/utils/MongoDB'
 import { AuthRouter } from '@/routes/auth.route'
-import { ConversationRouter } from '@/routes/conversation.route'
+import { ChatRouter } from '@/routes/chat.route'
 import { MessageRouter } from '@/routes/message.route'
-import { UserController } from '@/controllers/user.controller'
+import { SocketRouter } from '@/routes/socket.route'
 
 class App {
   private app: Application
@@ -26,7 +26,8 @@ class App {
         origin: process.env.CLIENT_URL,
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
         credentials: true,
-      }
+      },
+      maxHttpBufferSize: 1e8 / 20
     })
     this.config()
     this.routes()
@@ -36,6 +37,7 @@ class App {
 
   private config(): void {
     config()
+    this.app.use(express.static('public'))
     this.app.use(json())
     this.app.use(morgan('dev'))
     this.app.use(cookieParser())
@@ -54,41 +56,15 @@ class App {
 
   private routes(): void {
     const authRouter = new AuthRouter()
-    const conversationRouter = new ConversationRouter()
+    const chatRouter = new ChatRouter()
     const messageRouter = new MessageRouter()
     this.app.use('/auth', authRouter.getRouter())
-    this.app.use('/conversation', conversationRouter.getRouter())
+    this.app.use('/chat', chatRouter.getRouter())
     this.app.use('/message', messageRouter.getRouter())
   }
 
   private socketRoutes(): void {
-    this.io.on('connection', (socket) => {
-      console.log('User connected.', socket.id)
-      socket.on('disconnect', () => {
-        console.log('User disconnected.', socket.id)
-      })
-      socket.on('sendToAdmin', async (data) => {
-        const socketIdAdmin = await UserController.getSocketIdAdmin()
-        if (socketIdAdmin) {
-          socket.to(socketIdAdmin).emit('receiveAdmin', { 
-            message: data.message, 
-            sender: data.email,
-          })
-        }
-      })
-      socket.on('sendToUser', async (data) => {
-        const socketIdUser = await UserController.getSocketIdUser(data.email)
-        if (socketIdUser) {
-          socket.to(socketIdUser).emit('receiveUser', {
-            message: data.message,
-            sender: 'Admin' 
-          })
-        } 
-      })
-      socket.on('updateSocketId', async (data) => {
-        await UserController.updateSocketId(data.email, socket.id)
-      })
-    })
+    new SocketRouter(this.io)
   }
 
   private start(): void {

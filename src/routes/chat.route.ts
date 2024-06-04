@@ -1,21 +1,21 @@
 import { Router } from 'express'
-import { MessageController } from '@/controllers/message.controller'
+import { ChatController } from '@/controllers/chat.controller'
 import { AuthMiddleware } from '@/middlewares/auth.middleware'
 
-export class MessageRouter {
+export class ChatRouter {
   private router: Router
-  private messageController: MessageController
+  private chatController: ChatController
   private authMiddleware: AuthMiddleware
 
   constructor() {
     this.router = Router()
-    this.messageController = new MessageController()
+    this.chatController = new ChatController()
     this.authMiddleware = new AuthMiddleware()
     this.initRoutes()
   }
 
   private initRoutes(): void {
-    this.router.get('/get-all-message-by-user-id/:userId', this.authMiddleware.checkAuth, this.messageController.getAllMessageByUserId)
+    this.router.get('/get-chat-list', this.authMiddleware.checkAuth, this.chatController.getChatList)
   }
 
   getRouter(): Router {
